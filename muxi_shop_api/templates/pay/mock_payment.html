@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>模拟支付 - 慕希商城</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .payment-container {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .payment-info {
+            margin-bottom: 20px;
+        }
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        .success {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .success:hover {
+            background-color: #45a049;
+        }
+        .fail {
+            background-color: #f44336;
+            color: white;
+        }
+        .fail:hover {
+            background-color: #da190b;
+        }
+        .cancel {
+            background-color: #ff9800;
+            color: white;
+        }
+        .cancel:hover {
+            background-color: #e68a00;
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .loading {
+            display: none;
+            margin-top: 10px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>模拟支付页面</h1>
+    
+    <div class="payment-container">
+        <div class="payment-info">
+            <p><strong>订单号:</strong> {{ trade_no }}</p>
+            <p><strong>金额:</strong> ¥{{ amount }}</p>
+            <p><strong>商品描述:</strong> {{ subject }}</p>
+            <p><strong>状态:</strong> <span id="status">待支付</span></p>
+        </div>
+        
+        <div class="buttons">
+            <button class="success" onclick="processPayment('success')">支付成功</button>
+            <button class="fail" onclick="processPayment('fail')">支付失败</button>
+            <button class="cancel" onclick="processPayment('cancel')">取消支付</button>
+        </div>
+        
+        <div id="loading" class="loading">
+            正在处理，请稍候...
+        </div>
+    </div>
+
+    <script>
+        // 禁用按钮防止重复点击
+        function disableButtons() {
+            const buttons = document.querySelectorAll('.buttons button');
+            buttons.forEach(btn => {
+                btn.disabled = true;
+            });
+            document.getElementById('loading').style.display = 'block';
+        }
+        
+        // 启用按钮
+        function enableButtons() {
+            const buttons = document.querySelectorAll('.buttons button');
+            buttons.forEach(btn => {
+                btn.disabled = false;
+            });
+            document.getElementById('loading').style.display = 'none';
+        }
+        
+        async function processPayment(action) {
+            disableButtons();
+            
+            const statusMap = {
+                'success': '支付成功',
+                'fail': '支付失败',
+                'cancel': '支付取消'
+            };
+            
+            document.getElementById('status').innerText = statusMap[action];
+            
+            // 构建跳转URL
+            const tradeNo = '{{ trade_no }}';
+            const amount = '{{ amount }}';
+            
+            try {
+                // 发送支付结果到后端
+                const response = await fetch('{{ api_base }}/pay/mock/notify/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        out_trade_no: tradeNo,
+                        trade_status: action === 'success' ? 'TRADE_SUCCESS' : 'TRADE_FAILED',
+                        total_amount: amount
+                    })
+                });
+                
+                const data = await response.json();
+                console.log('后端响应:', data);
+                
+                // 跳转页面
+                let redirectUrl;
+                if (action === 'success') {
+                    redirectUrl = '{{ success_url }}?tradeNo=' + encodeURIComponent(tradeNo) + '&orderAmount=' + encodeURIComponent(amount);
+                } else {
+                    redirectUrl = '{{ fail_url }}?tradeNo=' + encodeURIComponent(tradeNo) + '&orderAmount=' + encodeURIComponent(amount);
+                }
+                
+                // 跳转前等待1秒，让用户看到状态变化
+                setTimeout(() => {
+                    window.location.href = redirectUrl;
+                }, 1000);
+                
+            } catch (error) {
+                console.error('请求失败:', error);
+                // 即使请求失败，也跳转到对应页面
+                let redirectUrl;
+                if (action === 'success') {
+                    redirectUrl = '{{ success_url }}?tradeNo=' + encodeURIComponent(tradeNo) + '&orderAmount=' + encodeURIComponent(amount);
+                } else {
+                    redirectUrl = '{{ fail_url }}?tradeNo=' + encodeURIComponent(tradeNo) + '&orderAmount=' + encodeURIComponent(amount);
+                }
+                
+                window.location.href = redirectUrl;
+            }
+        }
+    </script>
+</body>
+</html>

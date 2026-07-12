@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# 虚拟环境
+venv/
+env/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 环境变量（绝对不能上传！）
+.env
+.env.local
+env.py
+
+# 日志
+*.log
+logs/
+
+# 数据库
+*.db
+*.sqlite3
+
+# node_modules（前端）
+node_modules/
+
+# 编译产物
+dist/
+*.min.js
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# pycharm
+.idea/
+
+# 密钥文件
+*.pem
+*.key
